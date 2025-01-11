@@ -1,3 +1,4 @@
+#include <asm-generic/errno.h>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
@@ -5,8 +6,7 @@
 #include <string>
 #include <stdio.h>
 #include <cstring> 
-
-
+#include <vector>
 #define TAMANOPALABRA  256
 
 using namespace std;
@@ -20,7 +20,7 @@ private:
     int contador;
 
 public:
-    Nodo() { next = NULL;  contador=0; };
+    Nodo() { next = NULL;  contador=0;  };
     Nodo(T a) { dato = a; next = NULL; contador=0; };
     int get_contador(void){return contador;};
     void set_contador(int cont){contador=cont;}
@@ -35,6 +35,85 @@ public:
     Nodo* get_next(void) { return next; };
     bool es_vacio(void) { return next == NULL; };
 };
+template <class T> class NodoArbolBinario {
+private:
+    Nodo<T>* nodoLista;
+    NodoArbolBinario<T>* derecha;
+    NodoArbolBinario<T>* izquierda;
+
+public:
+    NodoArbolBinario() : nodoLista(nullptr), derecha(nullptr), izquierda(nullptr) {};
+    NodoArbolBinario<T>*& get_der(void){return derecha;};
+    void set_der(NodoArbolBinario<T>* n) { derecha = n; };
+    NodoArbolBinario<T>*& get_izq(){return izquierda;};
+     void set_izq(NodoArbolBinario<T>* n) { izquierda = n; };
+     void set_nodoLista(Nodo<T>* n) { nodoLista = n; };
+};
+
+template<class T>
+class EstructuraDualColaArbol;
+
+template <class T> class ArbolBinario{
+private:
+    NodoArbolBinario<T>* raiz ;
+    void ArbolBusq(T x, NodoArbolBinario<T>*& nuevo);
+    void crearArbol(NodoArbolBinario<T>*&,int profundidad);
+    void insertarDatos(EstructuraDualColaArbol<T>* lista, int profundidad);
+    void insertardatoaux(NodoArbolBinario<T>* actual,vector<bool> posicion, Nodo<T>* nuevo);
+public:
+    ArbolBinario( int profundidad, EstructuraDualColaArbol<T>* lista) { crearArbol(raiz, profundidad);
+                 insertarDatos(lista,profundidad);};
+    ~ArbolBinario() {};
+    void buscarNodo(Nodo<T>* nodoLista , int k){insertarNodoAux(raiz,nodoLista, k);};
+    Nodo<T>* busquedaNodo();
+
+};
+
+template<class T> 
+void ArbolBinario<T>::insertarDatos( EstructuraDualColaArbol<T>* lista,int profundidad) {
+    EstructuraDualColaArbol<T>*aux=lista;
+    for(int i=1; i<=lista->siz;i++){
+  
+  vector<bool> k(profundidad, false); // Iniciar el vector con 'p' bits en falso
+        // Llenar el vector con los bits del número (i-1) en binario
+        int num = i - 1;
+        for (int j = 0; j < profundidad; j++) {
+            k[profundidad - j - 1] = (num & (1 << j)) != 0;  // Asignar cada bit de forma inversa
+        }
+   
+   insertardatoaux(raiz,k,aux->nodoCabeza);
+   aux=lista->resto();
+
+    }
+
+    }
+
+template<class T> 
+void ArbolBinario<T>::insertardatoaux( NodoArbolBinario<T>* actual,vector<bool> posicion, Nodo<T>* nuevo) {
+NodoArbolBinario<T> aux=raiz;
+for (bool b : posicion) {
+    if (b) {
+     aux= aux.get_der();
+
+    } else {
+     aux= aux.get_izq();
+    }
+}
+aux->set_nodoLista(nuevo);
+    
+}
+
+template<class T> 
+void ArbolBinario<T>::crearArbol(NodoArbolBinario<T>*& actual, int profundidad) {
+if (profundidad == 0) {
+            return;
+        }
+        actual = new NodoArbolBinario<T>();
+        crearArbol(actual->get_izq(), profundidad - 1); 
+        crearArbol(actual->get_der(), profundidad - 1); 
+ }
+
+
 
 template <class T> class EstructuraDualColaArbol {
 private:
@@ -42,20 +121,19 @@ private:
        Nodo<T>* raiz;
        EstructuraDualColaArbol <T>* listainorden;
        void arbolAdd(Nodo<T>*& raiz,Nodo<T>* nuevo);
-       void show(Nodo<T>* aux, int n);
        Nodo<T>* buscarNodoArbol(T d, Nodo<T>* aux);
        void impreAlfAux(Nodo<T>* aux);
         void generarListaInorden(Nodo<T>* aux);
 public:
-    EstructuraDualColaArbol() { czo = new Nodo<T>(); raiz=nullptr; listainorden=nullptr;};
-    EstructuraDualColaArbol(Nodo<T>* n) { czo = n; raiz=n; listainorden=nullptr; };
-    void add(T d); //sumar nodos a la lista
+   int siz;
+    EstructuraDualColaArbol() { czo = new Nodo<T>(); raiz=nullptr; listainorden=nullptr; siz=0;};
+    EstructuraDualColaArbol(Nodo<T>* n) { czo = n; raiz=n; listainorden=nullptr; siz=0;};
+    void add(T d); 
     bool esvacia(void);
     Nodo<T>* nodoCabeza(void); //retorna el dato del primer nodo
     EstructuraDualColaArbol* resto(void); //retorna el puntero al "resto" de la lista
     void impre();
     void impreAlf();
-    void VerArbol() { show(raiz, 0);};
     T last(); //retorna el dato del ultimo nodo
      EstructuraDualColaArbol <T>* getListainorden();
 
@@ -111,8 +189,10 @@ void EstructuraDualColaArbol<T>::add(T d) //100
     nuevo->set_next(czo);
     czo = nuevo;
     aux=nuevo;
+    siz++;
    }
    aux->incrementarContador();
+   
 }
 template <class T>
 bool EstructuraDualColaArbol<T>::esvacia(void)
@@ -167,16 +247,6 @@ void EstructuraDualColaArbol<T>::impreAlf(){
    getListainorden()->impre();
 }
 
-template <class T> void EstructuraDualColaArbol<T>::show( Nodo<T>* aux, int n)
-{
-    int i;
-    if (aux != NULL) {                      //OjO este es un recorrido dri
-        show(aux->get_der(), n + 1);
-        for (i = 1; i <= n; i++) cout << "     ";
-        cout << aux->get_dato() << "\n";
-        show(aux->get_izq(), n + 1);
-    }
-}
 
 void limpiarYConvertirAMinusculas(char* palabra) {
     int len = strlen(palabra);
@@ -208,7 +278,7 @@ int main()
 
     fclose(doc); 
   lista.getListainorden()->impre();
-  //lista.VerArbol();//visualizar arbol
+  cout <<"\n" <<lista.siz;
   //lista.impreAlf();// visualizar palabras orden alfabetico;
  // lista.impre();//visualizar palabras en orden de llegada y cantidad de veces uqe se repiten
   return 0;
