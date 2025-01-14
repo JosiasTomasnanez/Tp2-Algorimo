@@ -8,7 +8,16 @@
 #include <stdio.h>
 #include <cstring> 
 #include <vector>
+
 #define TAMANOPALABRA  256
+#define COLOR_NEGRO "\033[0;30m"
+#define COLOR_ROJO "\033[0;31m"
+#define COLOR_VERDE "\033[0;32m"
+#define COLOR_AMARILLO "\033[0;33m"
+#define COLOR_AZUL "\033[0;34m"
+#define COLOR_MAGENTA "\033[0;35m"
+#define COLOR_CIAN "\033[0;36m"
+#define COLOR_BLANCO "\033[0;37m"
 
 using namespace std;
 
@@ -87,7 +96,6 @@ vector<bool> v(profundidad, false); // Iniciar el vector con 'p' bits en falso
         }
         return v;
  }
-
 
 
 template<class T> 
@@ -172,6 +180,8 @@ private:
        void impreAlfAux(Nodo<T>* aux);
        int getProfundidad(int num);
        void generarListaInorden(Nodo<T>* aux);
+        void swap(Nodo<T>* nodo1,Nodo<T>* nodo2 );
+        void QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo);
         ArbolBinario<T>* getArbolbin(){if(arbolbin==nullptr)arbolbin= new ArbolBinario<T>(getProfundidad(siz),this);
                                         return arbolbin;};
        
@@ -189,12 +199,56 @@ public:
      EstructuraDualColaArbol <T>* getListainorden();
      int get_siz(){return siz;};
      /*********************************/
-    void QuickSort(ArbolBinario<T>, int, int);
-    Nodo<T>* QuickSortAux(ArbolBinario<T>, int, int);
+    void ordenarQuickSort(){ QuickSortAux(czo,0,siz-1);};
 
 
 };
 
+template<class T> 
+void EstructuraDualColaArbol<T>::swap(Nodo<T>* nodo1,Nodo<T>* nodo2 ){
+    if(nodo1== nullptr || nodo2== nullptr){
+        cout<< "error"<< flush;
+        return;
+    }
+ T auxdato=nodo2->get_dato();
+ int auxcont=nodo2->get_contador();
+  nodo2->set_contador(nodo1->get_contador());
+  nodo2->set_dato(nodo1->get_dato());
+  nodo1->set_dato(auxdato);
+  nodo1->set_contador(auxcont);
+}
+
+template<class T>
+void EstructuraDualColaArbol<T>:: QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo) {
+    if (ultimo > primero) {
+        // Obtén el valor del pivote
+        Nodo<T>* pivot = getArbolbin()->buscarNodo(ultimo);
+        int i = primero - 1;
+        int j = ultimo;
+
+        while (true) {
+            
+          while (i < siz && getArbolbin()->buscarNodo(++i)->get_dato() > pivot->get_dato());
+          while (j > primero && getArbolbin()->buscarNodo(--j)->get_dato() < pivot->get_dato());
+
+
+            if (i >= j) break;
+
+            // Intercambia los valores entre buscarNodo(i) y buscarNodo(j)
+            Nodo<T>* nodoI = getArbolbin()->buscarNodo(i);
+            Nodo<T>* nodoJ = getArbolbin()->buscarNodo(j);
+            swap(nodoI,nodoJ);
+        }
+
+        // Intercambia el pivote con el nodo en la posición i
+        Nodo<T>* nodoI = getArbolbin()->buscarNodo(i);
+        swap(nodoI, getArbolbin()->buscarNodo(ultimo));
+        // Llamadas recursivas para las sublistas
+        QuickSortAux(cabeza, primero, i - 1);
+        QuickSortAux(cabeza, i + 1, ultimo);
+    }
+    
+}
 
 template <class T>
 void EstructuraDualColaArbol<T>:: ordenarSeleccion(){
@@ -206,8 +260,8 @@ void EstructuraDualColaArbol<T>:: ordenarSeleccion(){
 
     for(int i=0;i<siz-1;i++){
         // m++;
-        men = getArbolbin()->buscarNodo(i+1);
-   for(int j=i+1;j<siz-i;j++){
+        men = getArbolbin()->buscarNodo(i);
+   for(int j=i+1;j<siz-1-i;j++){
      //c++;
      if(getArbolbin()->buscarNodo(j)->get_contador()<men->get_contador()){
        men=getArbolbin()->buscarNodo(j); //m++;
@@ -215,13 +269,8 @@ void EstructuraDualColaArbol<T>:: ordenarSeleccion(){
    }
    
   aux2=getArbolbin()->buscarNodo(i);
-  auxdato=men->get_dato();
-  auxcont=men->get_contador();
-  men->set_contador(aux2->get_contador());
-  men->set_dato(aux2->get_dato());
-  aux2->set_dato(auxdato);
-  aux2->set_contador(auxcont);
-
+  swap(aux2,men);
+ 
  max = getArbolbin()->buscarNodo(siz-i-1);
  
    for(int k=siz-i-2; k>i; k--){
@@ -231,26 +280,11 @@ void EstructuraDualColaArbol<T>:: ordenarSeleccion(){
      }
    }
   aux2=getArbolbin()->buscarNodo(siz-i-1);
-  auxdato=max->get_dato();
-  auxcont=max->get_contador();
-  max->set_contador(aux2->get_contador());
-  max->set_dato(aux2->get_dato());
-  aux2->set_dato(auxdato);
-  aux2->set_contador(auxcont);
+  swap(aux2,max);
  }
 
 }
-
-
-
-
  
-
-
-
-
-
-
 
 
 template <class T>
@@ -350,7 +384,7 @@ template <class T>
 void EstructuraDualColaArbol<T>::impre() {
     if (!esvacia()) {
         resto()->impre();
-        cout << nodoCabeza()->get_dato() << "("<< nodoCabeza()->get_contador() << ")" << endl;
+        cout <<nodoCabeza()->get_dato() << "("<< nodoCabeza()->get_contador() << ")" << endl;
     }
 }
 
@@ -381,59 +415,6 @@ void EstructuraDualColaArbol<T>::impreAlf(){
  ****************************************************************************************/
 
 
-template <class T>
-void EstructuraDualColaArbol<T>::QuickSort(ArbolBinario<T> arbolbinario, int inicio, int final){
-    int i,j,k;
-    i=inicio-1;
-    Nodo<T> aux;
-    Nodo<T>* pivote;
-    
-    // if (final>inicio)
-    // {
-    //     pivote = arbolbinario->BuscarPosicion(final);
-    //     i=inicio-1; j=final;
-    //     for(;;){
-    //                  while(v[++i]<pivot)cc++;
-    //                  while(v[ --j ] >pivot)cc++;
-    //                  if(i>=j)break;
-    //                  aux=v[i];v[i]=v[j];v[j]=aux; cm=cm+3;     
-    //          }
-    // }
-    
-
-    
-
-
-   
-}
-
-// void ordenaQS(int v[], int primero, int ultimo)
-// { int i,j,k,pivot,aux;
-//       if(ultimo>primero){
-//              pivot=v[ultimo];cm++;
-//              //printf("\n -> %d  %d <-%4i",primero,ultimo,pivot);
-//              i=primero-1; j=ultimo;      
-//              for(;;){
-//                      while(v[++i]<pivot)cc++;
-//                      while(v[ --j ] >pivot)cc++;
-//                      if(i>=j)break;
-//                      aux=v[i];v[i]=v[j];v[j]=aux; cm=cm+3;     
-//              }// fin for
-//              aux=v[i];v[i]=v[ultimo];v[ultimo]=aux;cm=cm+3;
-//              //for(k=0;k<10;k++)printf("\n a[%d]=%d",k,v[k]);
-//              //printf("\n ------------------------------------");
-//              ordenaQS(v,primero,i-1);
-//              ordenaQS(v,i+1,ultimo);
-//              //printf("\nRETORNO -> %d  %d <-",primero,ultimo);
-//       } //fin if 
-// }// fin ordena
-
-
-
-/**************************************************************************************** 
- ****************************************************************************************/
-
-
 void limpiarYConvertirAMinusculas(char* palabra) {
     int len = strlen(palabra);
     int i = 0;
@@ -447,28 +428,112 @@ void limpiarYConvertirAMinusculas(char* palabra) {
     palabra[i] = '\0'; // Asegurarse de que la cadena termine correctamente
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    FILE *doc;
-    EstructuraDualColaArbol<string> lista;
-    doc=fopen("texto.txt","r");
+     char* linea= new char[TAMANOPALABRA];
+      EstructuraDualColaArbol<string>* lista= new EstructuraDualColaArbol<string>();
+       FILE *doc;
+       char buffer[TAMANOPALABRA]; // Buffer para almacenar temporalmente las palabras
+    while (true) {
+   
+if(argc>1){
+    linea=argv[1];
+}
+
+
+   if(linea[0] == '\0'){
+    string aux="texto.txt";
+    strcpy(linea, aux.c_str());
+   }
+    doc=fopen(linea,"r");
     if(doc==NULL){
         cout << "Error al abrir el archivo." << endl;
         return 1;
     }
-     char buffer[TAMANOPALABRA]; // Buffer para almacenar temporalmente las palabras
     while (fscanf(doc, "%255s", buffer) != EOF) { // Leer palabra por palabra
         limpiarYConvertirAMinusculas(buffer);
-        lista.add(buffer); 
+        lista->add(buffer); 
     }
 
     fclose(doc); 
- // lista.impre();
-  //lista.ordenarSeleccion();
-  lista.impre();
+   
+    bool nuevoTexto=false;
+    while(true){
+        int x;
+        if(nuevoTexto){
+            nuevoTexto=false;
+            break;
+        }
+        cout<< COLOR_AZUL<< "Ingrese el numero correspondiente a la accion que desea realizar"<< endl;
+        cout<<COLOR_CIAN<<"digite 1 para imprimir la lista."<< endl;
+        cout<<endl<<"digite 2 para ordenar la lista almacenada, ordenada por cantidad de apariciones de las palabras.Usando seleccion";
+        cout<<endl<<"digite 3 para ordenar la lista almacenada por sus palabras en orden alfabetico usando quicksort.";
+        cout<<endl<< "digite 4 para imprimir la lista alfabeticamente usando busqueda por arbol";
+        cout<< endl<< "digite 5 leer otro archivo de texto."<< endl;
+        cout<< endl<< "digite 6 para visualizar el listado de textos posibles a analizar."<< endl;
+        cout<< endl<< "digite 7 para finalizar el programa."<< endl << COLOR_BLANCO;
+        cin >> x;
+          if (cin.fail()) {
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Descarta la entrada no válida
+            cout << "Entrada no válida. Por favor, introduce un número." << endl;
+            continue;
+        } 
+        cout<< endl;
+        switch (x) {
+            case 1:
+            lista->impre();
+            break;
+            case 2:
+            lista->ordenarSeleccion();
+            lista->impre();
+            break;
+            case 3:
+            lista->ordenarQuickSort();
+            lista->impre();
+            break;
+            case 4:
+            lista->impreAlf();
+            break;
+            case 5:
+            cout<< "Ingrese el nombre del archivo de texto que quiera analizar"<< endl;
+            cin>>linea;
+            nuevoTexto=true;
+            continue;
+            case 6:
+            cout<<"listado de archivos de texto posible:"<< endl;
+            {
+            FILE* pipe = popen("ls", "r");
+             if (!pipe) {
+                 pipe = popen("dir", "r");
+        
+             if (!pipe) {
+                  cerr << "No se pudo ejecutar el comando.\n";
+                 return EXIT_FAILURE;
+                 }
+             }
+              char bufferLS[TAMANOPALABRA];
+              while (fgets(bufferLS, sizeof(bufferLS), pipe)) {
+                 if (strstr(bufferLS, ".txt") != nullptr) {
+                        cout << bufferLS; 
+                    }
+              }
+                 fclose(pipe);
+               }
+            break;
+            case 7:
+            return (EXIT_SUCCESS);
+            break;
+            default:
+            cout<< "El valor ingresado no corresponde a un numero valido"<< endl;
+            continue;
+            break;
+        
+        }
 
-  
-  //lista.impreAlf();// visualizar palabras orden alfabetico;
- // lista.impre();//visualizar palabras en orden de llegada y cantidad de veces uqe se repiten
-  return 0;
+    }
+   delete lista;
+    lista= new EstructuraDualColaArbol<string>();
+
+    }
 }
