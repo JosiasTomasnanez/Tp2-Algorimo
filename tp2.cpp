@@ -41,7 +41,7 @@ public:
     Nodo*& get_der(void){return derecha;};
     void set_der(Nodo* n) { derecha = n; };
     Nodo*& get_izq(){return izquierda;};
-     void set_izq(Nodo* n) { izquierda = n; };
+    void set_izq(Nodo* n) { izquierda = n; };
     Nodo* get_next(void) { return next; };
     bool es_vacio(void) { return next == NULL; };
 };
@@ -56,11 +56,14 @@ public:
     NodoArbolBinario<T>*& get_der(void){return derecha;};
     void set_der(NodoArbolBinario<T>* n) { derecha = n; };
     NodoArbolBinario<T>*& get_izq(){return izquierda;};
-     void set_izq(NodoArbolBinario<T>* n) { izquierda = n; };
-     void set_nodoLista(Nodo<T>* n) { nodoLista = n; };
-     
-    /*************************/
+    void set_izq(NodoArbolBinario<T>* n) { izquierda = n; };
+    void set_nodoLista(Nodo<T>* n) { nodoLista = n; };
     Nodo<T>* get_nodoLista() { return nodoLista;};
+};
+
+struct InfoEficiencia {
+    int comparaciones;
+    int movimientos;
 };
 
 template<class T>
@@ -181,7 +184,7 @@ private:
        int getProfundidad(int num);
        void generarListaInorden(Nodo<T>* aux);
         void swap(Nodo<T>* nodo1,Nodo<T>* nodo2 );
-        void QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo);
+        InfoEficiencia QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo);
         ArbolBinario<T>* getArbolbin(){if(arbolbin==nullptr)arbolbin= new ArbolBinario<T>(getProfundidad(siz),this);
                                         return arbolbin;};
        
@@ -190,7 +193,7 @@ public:
     EstructuraDualColaArbol(Nodo<T>* n) { czo = n; raiz=n; listainorden=nullptr; siz=1;arbolbin=nullptr;};
     void add(T d); 
     bool esvacia(void);
-    void ordenarSeleccion();
+    InfoEficiencia ordenarSeleccion();
     Nodo<T>* nodoCabeza(void); //retorna el dato del primer nodo
     EstructuraDualColaArbol* resto(void); //retorna el puntero al "resto" de la lista
     void impre();
@@ -199,7 +202,7 @@ public:
      EstructuraDualColaArbol <T>* getListainorden();
      int get_siz(){return siz;};
      /*********************************/
-    void ordenarQuickSort(){ QuickSortAux(czo,0,siz-1);};
+    InfoEficiencia ordenarQuickSort(){ return QuickSortAux(czo,0,siz-1);};
 
 
 };
@@ -207,7 +210,7 @@ public:
 template<class T> 
 void EstructuraDualColaArbol<T>::swap(Nodo<T>* nodo1,Nodo<T>* nodo2 ){
     if(nodo1== nullptr || nodo2== nullptr){
-        cout<< "error"<< flush;
+        cout<< "Error en la funcion swap"<< flush;
         return;
     }
  T auxdato=nodo2->get_dato();
@@ -219,7 +222,10 @@ void EstructuraDualColaArbol<T>::swap(Nodo<T>* nodo1,Nodo<T>* nodo2 ){
 }
 
 template<class T>
-void EstructuraDualColaArbol<T>:: QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo) {
+InfoEficiencia EstructuraDualColaArbol<T>:: QuickSortAux(Nodo<T>* cabeza, int primero, int ultimo) {
+    InfoEficiencia info;// tiene la variable int comparaciones y variable int movimientos
+    info.comparaciones=0;
+    info.movimientos=0;
     if (ultimo > primero) {
         // Obtén el valor del pivote
         Nodo<T>* pivot = getArbolbin()->buscarNodo(ultimo);
@@ -228,61 +234,60 @@ void EstructuraDualColaArbol<T>:: QuickSortAux(Nodo<T>* cabeza, int primero, int
 
         while (true) {
             
-          while (i < siz && getArbolbin()->buscarNodo(++i)->get_dato() > pivot->get_dato());
-          while (j > primero && getArbolbin()->buscarNodo(--j)->get_dato() < pivot->get_dato());
+          while (i < siz && getArbolbin()->buscarNodo(++i)->get_dato() > pivot->get_dato())info.comparaciones++;
+          while (j > primero && getArbolbin()->buscarNodo(--j)->get_dato() < pivot->get_dato())info.comparaciones++;
 
 
-            if (i >= j) break;
+            if (++info.comparaciones && i >= j) break;
 
             // Intercambia los valores entre buscarNodo(i) y buscarNodo(j)
-            Nodo<T>* nodoI = getArbolbin()->buscarNodo(i);
-            Nodo<T>* nodoJ = getArbolbin()->buscarNodo(j);
-            swap(nodoI,nodoJ);
+            swap(getArbolbin()->buscarNodo(i),getArbolbin()->buscarNodo(j));
+            info.movimientos+=6;
         }
 
         // Intercambia el pivote con el nodo en la posición i
-        Nodo<T>* nodoI = getArbolbin()->buscarNodo(i);
-        swap(nodoI, getArbolbin()->buscarNodo(ultimo));
+        swap(getArbolbin()->buscarNodo(i), pivot);
+        info.movimientos+=6;
         // Llamadas recursivas para las sublistas
-        QuickSortAux(cabeza, primero, i - 1);
-        QuickSortAux(cabeza, i + 1, ultimo);
+       InfoEficiencia infoIzq = QuickSortAux(cabeza, primero, i - 1);
+       InfoEficiencia infoDer =QuickSortAux(cabeza, i + 1, ultimo);
+       info.comparaciones += infoIzq.comparaciones + infoDer.comparaciones;
+       info.movimientos += infoIzq.movimientos + infoDer.movimientos;
     }
-    
+    return info;
 }
 
 template <class T>
-void EstructuraDualColaArbol<T>:: ordenarSeleccion(){
+InfoEficiencia EstructuraDualColaArbol<T>:: ordenarSeleccion(){
     Nodo<T>* men;
     Nodo<T>* max;
-    Nodo<T>*aux2;
-    int auxcont=0;
-    T auxdato;
+    InfoEficiencia info;
+    info.comparaciones=0;
+    info.movimientos=0;
 
-    for(int i=0;i<siz-1;i++){
-        // m++;
+    for(int i=0;i<(siz-1)/2;i++){
         men = getArbolbin()->buscarNodo(i);
-   for(int j=i+1;j<siz-1-i;j++){
-     //c++;
+   for(int j=i+1;j<siz-3-i;j++){
      if(getArbolbin()->buscarNodo(j)->get_contador()<men->get_contador()){
-       men=getArbolbin()->buscarNodo(j); //m++;
+       men=getArbolbin()->buscarNodo(j); 
      }
+      info.comparaciones++;
    }
    
-  aux2=getArbolbin()->buscarNodo(i);
-  swap(aux2,men);
+  swap(getArbolbin()->buscarNodo(i),men);
+  info.movimientos+=6;
+  max = getArbolbin()->buscarNodo(siz-i-1);
  
- max = getArbolbin()->buscarNodo(siz-i-1);
- 
-   for(int k=siz-i-2; k>i; k--){
-    // c++;
+   for(int k=siz-i-2; k>i+3; k--){
      if(getArbolbin()->buscarNodo(k)->get_contador()>max->get_contador()){
-       max= getArbolbin()->buscarNodo(k);// m++;
+       max= getArbolbin()->buscarNodo(k);
      }
+      info.comparaciones++;
    }
-  aux2=getArbolbin()->buscarNodo(siz-i-1);
-  swap(aux2,max);
+  swap(getArbolbin()->buscarNodo(siz-i-1),max);
+  info.movimientos+=6;
  }
-
+return info;
 }
  
 
@@ -306,7 +311,7 @@ template <class T>
 T EstructuraDualColaArbol<T>::last()
 {
     if (!this->esvacia()) {
-        if (this->resto()->esvacia())return this->cabeza();
+        if (this->resto()->esvacia())return this->nodoCabeza()->get_dato();
         return this->resto()->last();
     }return 0;
 }
@@ -469,8 +474,8 @@ if(argc>1){
         cout<<endl<<"digite 2 para ordenar la lista almacenada, ordenada por cantidad de apariciones de las palabras.Usando seleccion";
         cout<<endl<<"digite 3 para ordenar la lista almacenada por sus palabras en orden alfabetico usando quicksort.";
         cout<<endl<< "digite 4 para imprimir la lista alfabeticamente usando busqueda por arbol";
-        cout<< endl<< "digite 5 leer otro archivo de texto."<< endl;
-        cout<< endl<< "digite 6 para visualizar el listado de textos posibles a analizar."<< endl;
+        cout<< endl<< "digite 5 leer otro archivo de texto.";
+        cout<< endl<< "digite 6 para visualizar el listado de textos posibles a analizar.";
         cout<< endl<< "digite 7 para finalizar el programa."<< endl << COLOR_BLANCO;
         cin >> x;
           if (cin.fail()) {
@@ -485,12 +490,18 @@ if(argc>1){
             lista->impre();
             break;
             case 2:
-            lista->ordenarSeleccion();
+            {
+            InfoEficiencia info= lista->ordenarSeleccion();
             lista->impre();
+            cout<<"El algoritmo de seleccion realizo " <<info.comparaciones<< " comparaciones y " << info.movimientos << " movimientos" << endl;
+            }
             break;
             case 3:
-            lista->ordenarQuickSort();
+            {
+            InfoEficiencia info = lista->ordenarQuickSort();
             lista->impre();
+            cout<<"El algoritmo QuickSort realizo " <<info.comparaciones<< " comparaciones y " << info.movimientos << " movimientos" << endl;
+            }
             break;
             case 4:
             lista->impreAlf();
@@ -503,9 +514,9 @@ if(argc>1){
             case 6:
             cout<<"listado de archivos de texto posible:"<< endl;
             {
-            FILE* pipe = popen("ls", "r");
+            FILE* pipe = popen("dir", "r");
              if (!pipe) {
-                 pipe = popen("dir", "r");
+                 pipe = popen("ls", "r");
         
              if (!pipe) {
                   cerr << "No se pudo ejecutar el comando.\n";
