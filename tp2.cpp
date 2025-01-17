@@ -841,6 +841,8 @@ int main(int argc, char *argv[]) {
         break;
       }
     }
+    string aux = "texts/";
+    strcpy(carpeta, aux.c_str());
     delete lista;
     lista = new EstructuraDualColaArbol<string>();
   }
