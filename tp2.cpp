@@ -13,6 +13,7 @@
 #define COLOR_AZUL "\033[0;34m"
 #define COLOR_CIAN "\033[0;36m"
 #define COLOR_BLANCO "\033[0;37m"
+#define COLOR_ROJO "\033[31m"
 
 using namespace std;
 
@@ -115,13 +116,6 @@ private:
                        Nodo<T> *nuevo);
   Nodo<T> *buscarNodoAux(NodoArbolBinario<T> *actual, vector<bool> k, int pos);
   vector<bool> getBin(int k);
-  void eliminarRecursivo(NodoArbolBinario<T> *nodo) {
-    if (nodo != nullptr) {
-      eliminarRecursivo(nodo->get_izq());
-      eliminarRecursivo(nodo->get_der());
-      delete nodo;
-    }
-  }
 
 public:
   ArbolBinario(int profundidad, EstructuraDualColaArbol<T> *lista) {
@@ -129,7 +123,6 @@ public:
     crearArbol(raiz, profundidad);
     insertarDatos(lista, profundidad);
   };
-  ~ArbolBinario<T>() { eliminarRecursivo(raiz); };
   Nodo<T> *buscarNodo(int k) { return buscarNodoAux(raiz, getBin(k), 0); };
 };
 
@@ -204,10 +197,9 @@ void ArbolBinario<T>::insertardatoaux(NodoArbolBinario<T> *actual,
     actual->set_nodoLista(nuevo);
     return;
   }
-
   bool direccion = posicion.front();
   posicion.erase(posicion.begin());
-
+  
   if (direccion == false) {
     if (!actual->get_izq()) {
       actual->set_izq(new NodoArbolBinario<T>());
@@ -752,22 +744,22 @@ int main(int argc, char *argv[]) {
       cout << COLOR_AZUL
            << "Ingrese el numero correspondiente a la accion que desea realizar"
            << endl;
-      cout << COLOR_CIAN << "digite 1 para imprimir la lista." << endl;
+      cout << COLOR_ROJO<<"*"<<COLOR_CIAN<<"Digite 1 para imprimir la lista.";
       cout << endl
-           << "digite 2 para imprimir la lista alfabeticamente usando busqueda "
+           <<COLOR_ROJO<<"*"<<COLOR_CIAN<<"Digite 2 para imprimir la lista alfabeticamente usando busqueda "
               "por arbol";
       cout << endl
-           << "digite 3 para ordenar la lista almacenada, ordenada por "
-              "cantidad de apariciones de las palabras.Usando seleccion";
+           <<COLOR_ROJO<<"*"<<COLOR_CIAN<< "Digite 3 para ordenar la lista almacenada, ordenada por "
+              "cantidad de apariciones de las palabras usando algoritmo seleccion";
       cout << endl
-           << "digite 4 para ordenar la lista almacenada por sus palabras en "
-              "orden alfabetico usando quicksort.";
-      cout << endl << "digite 5 leer otro archivo de texto.";
+           << COLOR_ROJO<<"*"<<COLOR_CIAN<<"Digite 4 para ordenar la lista almacenada por sus palabras en "
+              "orden alfabetico usando algoritmo quicksort.";
+      cout << endl<< COLOR_ROJO<<"*"<<COLOR_CIAN<<"digite 5 leer otro archivo de texto.";
       cout << endl
-           << "digite 6 para visualizar el listado de textos posibles a "
+           << COLOR_ROJO<<"*"<<COLOR_CIAN<<"Digite 6 para visualizar el listado de textos posibles a "
               "analizar.";
       cout << endl
-           << "digite 7 para finalizar el programa." << endl
+           <<COLOR_ROJO<<"*"<<COLOR_CIAN<< "Digite 7 para finalizar el programa." << endl
            << COLOR_BLANCO;
       cin >> x;
       if (cin.fail()) {
